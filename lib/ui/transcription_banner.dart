@@ -89,13 +89,30 @@ class TranscriptionBanner extends StatelessWidget {
             ),
             if (state.isRunning) ...[
               const SizedBox(height: 8),
-              // A null progress value renders an indeterminate bar, which is
-              // the honest signal during Whisper inference — the engine
-              // reports nothing until it finishes.
-              LinearProgressIndicator(
-                value: state.progress,
-                minHeight: 3,
-                backgroundColor: Colors.white12,
+              Row(
+                children: [
+                  Expanded(
+                    // A null value renders an indeterminate bar, which is the
+                    // honest signal for stages that cannot be measured.
+                    child: LinearProgressIndicator(
+                      value: state.progress,
+                      minHeight: 3,
+                      backgroundColor: Colors.white12,
+                    ),
+                  ),
+                  if (state.progress != null) ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      '${(state.progress! * 100).round()}%',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 11,
+                        // Stops the percentage jittering as digits change.
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ],

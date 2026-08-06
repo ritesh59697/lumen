@@ -8,6 +8,7 @@ import 'package:whisper_ggml_plus/whisper_ggml_plus.dart';
 import '../subtitles/cue_sanitizer.dart';
 import '../subtitles/subtitle_model.dart';
 import 'audio_extractor.dart';
+import 'chunked_transcriber.dart';
 import 'model_manager.dart';
 
 /// Phases a transcription job moves through, in order.
@@ -94,6 +95,7 @@ class TranscriptionService {
   final ModelManager _models;
   final AudioExtractor _extractor;
   final WhisperController _controller;
+  final ChunkedTranscriber _chunker = const ChunkedTranscriber();
 
   /// Cleans raw Whisper segments into watchable cues.
   final CueSanitizer sanitizer;
@@ -183,26 +185,68 @@ class TranscriptionService {
       _throwIfCancelled(cancellation);
 
       // ---- 3. Transcribe -----------------------------------------------
-      _emit(const TranscriptionState(
-        stage: TranscriptionStage.transcribing,
-        message: 'Transcribing audio. This may take a while...',
-      ));
+      final audioSeconds =
+          await _extractor.probeDurationSeconds(extractedAudio.path);
+      final audioDuration = audioSeconds == null
+          ? null
+          : Duration(milliseconds: (audioSeconds * 1000).round());
 
-      final result = await _controller.transcribe(
-        model: model,
-        audioPath: extractedAudio.path,
-        lang: language,
-        isTranslate: translateToEnglish,
-        withTimestamps: true,
-        // Already 16 kHz mono WAV, so skip the package's own conversion.
-        convert: false,
-        threads: _recommendedThreads(),
-      );
+      final rawCues = <SubtitleCue>[];
 
-      _throwIfCancelled(cancellation);
+      if (audioDuration != null && _chunker.shouldChunk(audioDuration)) {
+        // Long file: transcribe in chunks so there is real progress to show.
+        _emit(TranscriptionState(
+          stage: TranscriptionStage.transcribing,
+          progress: 0,
+          message: 'Transcribing ${_describe(audioDuration)} of audio...',
+        ));
 
-      final segments = result?.transcription.segments ?? const [];
-      if (segments.isEmpty) {
+        rawCues.addAll(await _chunker.transcribe(
+          wavPath: extractedAudio.path,
+          audioDuration: audioDuration,
+          model: model,
+          controller: _controller,
+          threads: _recommendedThreads(),
+          language: language,
+          translateToEnglish: translateToEnglish,
+          isCancelled: () => cancellation.isCancelled,
+          onProgress: (p) => _emit(_state.copyWith(
+            progress: p.fraction,
+            message: _progressMessage(p),
+          )),
+        ));
+      } else {
+        // Short file: one pass is quicker than the chunking overhead.
+        _emit(const TranscriptionState(
+          stage: TranscriptionStage.transcribing,
+          message: 'Transcribing audio...',
+        ));
+
+        final result = await _controller.transcribe(
+          model: model,
+          audioPath: extractedAudio.path,
+          lang: language,
+          isTranslate: translateToEnglish,
+          withTimestamps: true,
+          // Already 16 kHz mono WAV, so skip the package's own conversion.
+          convert: false,
+          threads: _recommendedThreads(),
+        );
+
+        for (final s in result?.transcription.segments ?? const []) {
+          rawCues.add(
+            SubtitleCue(start: s.fromTs, end: s.toTs, text: s.text),
+          );
+        }
+      }
+
+      // A cancelled run keeps whatever was transcribed rather than discarding
+      // it. On a multi-hour file, throwing away an hour of finished work
+      // because the user stopped at 90% would be indefensible.
+      final wasCancelled = cancellation.isCancelled;
+
+      if (rawCues.isEmpty) {
+        if (wasCancelled) throw const _CancelledSignal();
         throw const TranscriptionException(
           'No speech was detected in this file.',
         );
@@ -214,10 +258,7 @@ class TranscriptionService {
         message: 'Writing subtitles...',
       ));
 
-      final cues = sanitizer.sanitize([
-        for (final s in segments)
-          SubtitleCue(start: s.fromTs, end: s.toTs, text: s.text),
-      ]);
+      final cues = sanitizer.sanitize(rawCues);
 
       if (cues.isEmpty) {
         throw const TranscriptionException(
@@ -232,7 +273,12 @@ class TranscriptionService {
       _emit(TranscriptionState(
         stage: TranscriptionStage.complete,
         progress: 1,
-        message: 'Generated ${cues.length} subtitles.',
+        message: wasCancelled
+            // Say plainly that this covers only part of the video, so the
+            // subtitles running out partway is expected rather than a bug.
+            ? 'Stopped early — kept ${cues.length} subtitles '
+                'up to ${_describe(cues.last.end)}.'
+            : 'Generated ${cues.length} subtitles.',
         subtitlePath: destination,
       ));
 
@@ -294,6 +340,42 @@ class TranscriptionService {
       await subtitles.create(recursive: true);
       return p.join(subtitles.path, '$base.$language.srt');
     }
+  }
+
+  /// Builds the progress line, e.g. "3:20 of 1:45:00 · about 12 min left".
+  ///
+  /// The remaining estimate is omitted until throughput is measurable —
+  /// a wrong number is worse than no number.
+  String _progressMessage(TranscriptionProgress p) {
+    final done = _describe(p.processed);
+    final total = _describe(p.total);
+    final left = p.remaining;
+
+    if (left == null) return 'Transcribing $done of $total...';
+    return 'Transcribing $done of $total · ${_describeRough(left)} left';
+  }
+
+  /// Exact-ish duration for positions: "3:20", "1:45:00".
+  String _describe(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+
+    if (h > 0) {
+      return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  /// Rounded duration for estimates, which should not look precise.
+  String _describeRough(Duration d) {
+    if (d.inMinutes < 1) return 'under a minute';
+    if (d.inMinutes < 60) return 'about ${d.inMinutes} min';
+
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    if (m == 0) return 'about $h hr';
+    return 'about $h hr $m min';
   }
 
   /// Leaves headroom so the UI and video decoding stay responsive during
