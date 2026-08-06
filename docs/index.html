@@ -207,39 +207,11 @@
 
   /* ---- caption player ------------------------------------------------ */
 
-  .stage {
-    margin: 56px auto 0;
-    max-width: 720px;
-    border: 1px solid var(--line-navy);
-    background: #070C1E;
-    text-align: left;
-  }
-
-  .stage-bar {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 11px 16px;
-    border-bottom: 1px solid var(--line-navy);
-    font-family: var(--mono);
-    font-size: 12px;
-    color: #7C88A6;
-  }
-
   .dot {
     width: 9px; height: 9px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.14);
     flex: none;
-  }
-
-  .stage-body {
-    position: relative;
-    min-height: 180px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 22px 26px 28px;
   }
 
   #cue {
@@ -276,12 +248,138 @@
     color: #6C789A;
   }
 
-  .track { height: 2px; background: rgba(255, 255, 255, 0.1); }
-  #played { height: 100%; width: 0%; background: var(--accent-lit); }
 
   @media (prefers-reduced-motion: reduce) {
     #cue::after { animation: none; }
   }
+
+  /* ---- app mockups --------------------------------------------------- */
+
+  /*
+    Recreations of Lumen's interface, built in markup rather than shipped as
+    images so they stay crisp at any size and cost no extra requests. Each
+    sits in a .shot wrapper — swapping in a real screenshot means replacing
+    the contents of that wrapper and nothing else.
+  */
+  .shot {
+    margin-top: 52px;
+    border: 1px solid var(--line-navy);
+    background: #060B1C;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+
+  .band--alt .shot,
+  .band:not(.band--navy):not(.band--navy2) .shot {
+    border-color: var(--line);
+    box-shadow: 0 24px 60px rgba(12, 17, 25, 0.16);
+  }
+
+  .shot img { display: block; width: 100%; height: auto; }
+
+  /* Window chrome, so a mockup reads as an application rather than a card. */
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 15px;
+    background: #0A1024;
+    border-bottom: 1px solid var(--line-navy);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #7C88A6;
+  }
+
+  .chrome .dot { width: 10px; height: 10px; }
+  .chrome-title { margin-left: 6px; }
+  .chrome-icons { margin-left: auto; letter-spacing: 3px; opacity: 0.5; }
+
+  /* --- video frame with a caption burned over it --- */
+
+  .frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(80% 60% at 50% 25%, #16233F 0%, #0A1226 60%, #060B1C 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 0 34px;
+  }
+
+  .frame-caption {
+    max-width: 34ch;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #FFFFFF;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 4px 10px;
+  }
+
+  /* --- transcription progress banner --- */
+
+  .banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line-navy);
+    background: #080E20;
+    font-size: 13.5px;
+  }
+
+  .banner-spark { color: var(--accent-lit); }
+  .banner-text { color: #E6ECF8; }
+  .banner-sub { color: #6FCF97; font-size: 12px; }
+  .banner-pct {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #7C88A6;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar { height: 3px; background: rgba(255, 255, 255, 0.09); }
+  .bar span { display: block; height: 100%; width: 34%; background: var(--accent-lit); }
+
+  /* --- subtitle editor panel --- */
+
+  .editor { display: grid; grid-template-columns: 1fr; }
+
+  @media (min-width: 820px) {
+    .editor { grid-template-columns: 1.35fr 1fr; }
+  }
+
+  .editor-side {
+    border-top: 1px solid var(--line-navy);
+    background: #080D1E;
+    padding: 6px 0;
+  }
+
+  @media (min-width: 820px) {
+    .editor-side { border-top: 0; border-left: 1px solid var(--line-navy); }
+  }
+
+  .cue-row {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .cue-row.is-active {
+    background: rgba(44, 127, 240, 0.13);
+    box-shadow: inset 3px 0 0 var(--accent-lit);
+  }
+
+  .cue-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #6C789A;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cue-text { font-size: 13.5px; color: #DCE4F3; margin-top: 3px; }
 
   /* ---- feature rows -------------------------------------------------- */
 
@@ -450,6 +548,41 @@
         </p>
       </div>
     </div>
+
+    <div class="shot">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="chrome-title">Solidity Tutorial.mp4 — editing subtitles</span>
+        <span class="chrome-icons">⌸ ✦ ⇩ ☰</span>
+      </div>
+
+      <div class="editor">
+        <div class="frame" style="aspect-ratio:16/10">
+          <span class="frame-caption">
+            A mapping is a key-value store, so you look values up by address.
+          </span>
+        </div>
+
+        <div class="editor-side">
+          <div class="cue-row">
+            <div class="cue-time">00:04:12,180 → 00:04:15,940</div>
+            <div class="cue-text">Let's talk about how mappings work in Solidity.</div>
+          </div>
+          <div class="cue-row is-active">
+            <div class="cue-time">00:04:15,940 → 00:04:19,600</div>
+            <div class="cue-text">A mapping is a key-value store, so you look values up by address.</div>
+          </div>
+          <div class="cue-row">
+            <div class="cue-time">00:04:19,600 → 00:04:22,310</div>
+            <div class="cue-text">There is no way to enumerate the keys.</div>
+          </div>
+          <div class="cue-row">
+            <div class="cue-time">00:04:22,310 → 00:04:25,880</div>
+            <div class="cue-text">That trips people up coming from other languages.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -465,16 +598,31 @@
       to it.
     </p>
 
-    <div class="stage">
-      <div class="stage-bar">
+    <!--
+      Replace the contents of .shot with <img src="img/…"> to swap in a real
+      screenshot; nothing outside this wrapper depends on what is inside it.
+    -->
+    <div class="shot">
+      <div class="chrome">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span>interview-raw.mkv — no subtitle track</span>
+        <span class="chrome-title">JavaScript Full Course.mp4</span>
+        <span class="chrome-icons">⌸ ✦ ⇩ ☰</span>
       </div>
-      <div class="stage-body">
+
+      <div class="frame">
         <span class="timecode" id="tc">00:00:00,000</span>
-        <p id="cue"></p>
+        <p class="frame-caption" id="cue"></p>
       </div>
-      <div class="track"><div id="played"></div></div>
+
+      <div class="banner">
+        <span class="banner-spark">✦</span>
+        <span>
+          <span class="banner-text">Transcribing 9:00 of 8:04:11 · about 10 min left</span><br>
+          <span class="banner-sub">Captions are playing as they finish — you can start watching now.</span>
+        </span>
+        <span class="banner-pct">2%</span>
+      </div>
+      <div class="bar"><span id="played"></span></div>
     </div>
   </div>
 </section>
