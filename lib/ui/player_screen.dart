@@ -37,6 +37,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
   /// chunk does not cause a needless track reload mid-playback.
   String? _lastPartialSrt;
 
+  /// Newest partial payload waiting for a safe moment to be applied.
+  String? _pendingPartialSrt;
+  Timer? _partialApplyTimer;
+
   Duration _position = Duration.zero;
 
   bool _showPlaylist = false;
@@ -63,6 +67,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   @override
   void dispose() {
+    _partialApplyTimer?.cancel();
     for (final sub in _subs) {
       sub.cancel();
     }
@@ -87,7 +92,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final partial = state.partialSrt;
     if (partial != null && partial != _lastPartialSrt) {
       _lastPartialSrt = partial;
-      _controller.setSubtitleData(partial, title: 'Generating…');
+      _schedulePartialSubtitles(partial);
     }
 
     setState(() => _jobState = state);
@@ -97,6 +102,54 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _controller.setSubtitleFile(state.subtitlePath!);
       _loadDocument(state.subtitlePath!);
     }
+  }
+
+  /// Applies newly transcribed subtitles without interrupting the one on
+  /// screen.
+  ///
+  /// Attaching a subtitle track makes libmpv re-parse it, which clears the
+  /// cue currently displayed. Doing that every time a chunk lands — roughly
+  /// every two seconds — makes captions visibly blink out and back.
+  ///
+  /// Two things avoid it. Updates are only applied when playback is in a
+  /// gap between cues, so nothing is on screen to lose; and they are rate
+  /// limited, because the viewer is watching the beginning of the video
+  /// while transcription races ahead, so freshly transcribed cues are
+  /// minutes away from being needed.
+  void _schedulePartialSubtitles(String srt) {
+    _pendingPartialSrt = srt;
+
+    // Already waiting to apply one — the newest payload supersedes it.
+    if (_partialApplyTimer?.isActive ?? false) return;
+
+    _partialApplyTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (timer) {
+        final pending = _pendingPartialSrt;
+        if (pending == null) {
+          timer.cancel();
+          return;
+        }
+
+        // Wait for a gap between cues so nothing visible is interrupted.
+        if (_isCueOnScreen()) return;
+
+        timer.cancel();
+        _pendingPartialSrt = null;
+        _controller.setSubtitleData(pending, title: 'Generating…');
+      },
+    );
+  }
+
+  /// Whether a subtitle is being displayed at the current playhead.
+  bool _isCueOnScreen() {
+    final doc = _document;
+    if (doc != null && doc.length > 0) {
+      return doc.indexAt(_controller.player.state.position) >= 0;
+    }
+    // No parsed document yet: fall back to what the player is rendering.
+    return _controller.player.state.subtitle
+        .any((line) => line.trim().isNotEmpty);
   }
 
   Future<void> _onPlaybackCompleted() async {
@@ -221,8 +274,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
     if (options == null) return;
 
     // Fresh job: forget the previous run's partial payload so its first
-    // update is not mistaken for a repeat.
+    // update is not mistaken for a repeat, and drop anything still queued.
     _lastPartialSrt = null;
+    _pendingPartialSrt = null;
+    _partialApplyTimer?.cancel();
 
     unawaited(_transcription.generate(
       videoPath: videoPath,

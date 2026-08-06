@@ -67,23 +67,28 @@ class TranscriptionProgress {
 /// while the rest is still running.
 class ChunkedTranscriber {
   const ChunkedTranscriber({
-    this.chunkDuration = const Duration(seconds: 90),
-    this.overlap = const Duration(seconds: 2),
+    this.chunkDuration = const Duration(seconds: 120),
+    this.overlap = const Duration(seconds: 5),
   });
 
   /// How much audio to transcribe per pass.
   ///
   /// Whisper works in 30-second windows internally, so chunks should be a
-  /// comfortable multiple of that. 90 seconds keeps progress updates
-  /// frequent enough to feel live without paying the model-warmup cost too
-  /// often.
+  /// comfortable multiple of that. Two minutes keeps progress updates
+  /// frequent enough to feel live while keeping the number of seams down —
+  /// every boundary is a chance to mangle a sentence, and an eight-hour
+  /// video has hundreds of them.
   final Duration chunkDuration;
 
   /// Audio replayed at the start of each chunk.
   ///
-  /// A hard cut can land mid-word and lose it. Overlapping slightly and then
-  /// dropping cues that fall in the replayed region keeps boundary words
-  /// intact.
+  /// A hard cut lands mid-sentence and Whisper truncates whatever utterance
+  /// it was in the middle of, so words at a seam go missing unless the next
+  /// chunk hears them with enough context to transcribe them properly.
+  ///
+  /// Five seconds comfortably covers a spoken sentence. Two was not enough:
+  /// the replayed audio started mid-phrase, so the model had no more context
+  /// than the previous chunk did and produced the same truncated result.
   final Duration overlap;
 
   /// Whether [audioDuration] is worth chunking at all.
@@ -151,12 +156,23 @@ class ChunkedTranscriber {
           // the real timeline.
           final start = readFrom + segment.fromTs;
           final end = readFrom + segment.toTs;
+          final text = segment.text.trim();
 
-          // Drop anything that lands in the replayed overlap — it was
-          // already transcribed as part of the previous chunk.
-          if (start < offset && offset > Duration.zero) continue;
+          if (text.isEmpty) continue;
 
-          cues.add(SubtitleCue(start: start, end: end, text: segment.text));
+          // Cues in the replayed region are kept unless the previous chunk
+          // already produced the same words.
+          //
+          // Dropping them purely by timestamp loses speech: Whisper
+          // truncates the final utterance of a chunk at the hard boundary,
+          // so the words either side of a seam are frequently transcribed
+          // by *neither* chunk. Over the 320 seams in an eight-hour video
+          // that silently removes a great deal of dialogue.
+          if (start < offset && cues.isNotEmpty) {
+            if (_alreadyCaptured(cues, text)) continue;
+          }
+
+          cues.add(SubtitleCue(start: start, end: end, text: text));
         }
       } finally {
         final chunk = File(chunkPath);
@@ -182,6 +198,43 @@ class ChunkedTranscriber {
 
     return cues;
   }
+
+  /// Whether [text] repeats something already transcribed at the seam.
+  ///
+  /// Only the last few cues are checked — a duplicate can only come from the
+  /// immediately preceding chunk, and comparing against the whole transcript
+  /// would both cost more and wrongly drop legitimately repeated phrases
+  /// later in the video.
+  ///
+  /// Comparison is on normalized text because the two chunks hear the same
+  /// audio with different context, so punctuation and capitalisation often
+  /// differ even when the words are identical.
+  bool _alreadyCaptured(List<SubtitleCue> cues, String text) {
+    final candidate = _normalize(text);
+    if (candidate.isEmpty) return true;
+
+    final from = cues.length < 4 ? 0 : cues.length - 4;
+    for (var i = from; i < cues.length; i++) {
+      final existing = _normalize(cues[i].text);
+
+      // Exact repeat, or one is contained in the other — a truncated
+      // utterance from the previous chunk against its complete form here.
+      if (existing == candidate ||
+          existing.contains(candidate) ||
+          candidate.contains(existing)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Lowercases and strips punctuation so the same words compare equal
+  /// regardless of how each chunk punctuated them.
+  String _normalize(String s) => s
+      .toLowerCase()
+      .replaceAll(RegExp(r"[^\w\s']"), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 
   /// Cuts [length] of audio starting at [start] into [destination].
   ///
