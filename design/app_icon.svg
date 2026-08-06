@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    Lumen app icon, second attempt.
+
+    The first version put a dot above two bars, which read as a webcam or a
+    record button — exactly the wrong signal for a player.
+
+    This one is a projector beam striking a caption: a narrow cone of light
+    from the top-left widening down to two subtitle lines. The diagonal is
+    what makes it specific — a beam has direction, a centred dot does not.
+    Lumen is named for light, and the captions are what the light lands on.
+
+    At 16px the cone falls away and it reads as two bright bars on dark,
+    which is still unmistakably a subtitle.
+  -->
+
+  <defs>
+    <radialGradient id="ground" cx="26%" cy="8%" r="115%">
+      <stop offset="0%"   stop-color="#1B2534"/>
+      <stop offset="50%"  stop-color="#111621"/>
+      <stop offset="100%" stop-color="#090B0E"/>
+    </radialGradient>
+
+    <!-- The beam itself: bright at the aperture, dissolving as it spreads. -->
+    <linearGradient id="cone" x1="18%" y1="0%" x2="62%" y2="100%">
+      <stop offset="0%"   stop-color="#8CC8FF" stop-opacity="0.85"/>
+      <stop offset="45%"  stop-color="#4A9EFF" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#4A9EFF" stop-opacity="0.04"/>
+    </linearGradient>
+
+    <linearGradient id="caption" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#EAF4FF"/>
+      <stop offset="100%" stop-color="#9FCCFF"/>
+    </linearGradient>
+
+    <linearGradient id="captionDim" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#5FA8F5"/>
+      <stop offset="100%" stop-color="#3D82D6"/>
+    </linearGradient>
+
+    <clipPath id="body">
+      <path d="M232 0h560c128 0 232 104 232 232v560c0 128-104 232-232 232H232C104 1024 0 920 0 792V232C0 104 104 0 232 0z"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#body)">
+    <rect width="1024" height="1024" fill="url(#ground)"/>
+
+    <!--
+      The beam. Starts narrow at the top-left aperture and widens across
+      the frame, so the light clearly travels rather than just glowing.
+    -->
+    <path d="M150 -40 L322 -40 L880 900 L292 900 Z" fill="url(#cone)"/>
+
+    <!-- Aperture: the source, cropped by the icon edge so it reads as
+         off-frame rather than as a button sitting in the middle. -->
+    <circle cx="236" cy="14" r="118" fill="#BFE0FF" opacity="0.55"/>
+    <circle cx="236" cy="14" r="62"  fill="#EAF4FF" opacity="0.85"/>
+
+    <!--
+      Two caption lines where the beam lands. The second is shorter and
+      inset — the shape a wrapped subtitle actually takes.
+    -->
+    <g>
+      <rect x="196" y="628" width="632" height="96" rx="48" fill="url(#caption)"/>
+      <rect x="196" y="782" width="404" height="96" rx="48" fill="url(#captionDim)"/>
+    </g>
+
+    <path d="M232 0h560c128 0 232 104 232 232v560c0 128-104 232-232 232H232C104 1024 0 920 0 792V232C0 104 104 0 232 0z"
+          fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="6"/>
+  </g>
+</svg>
