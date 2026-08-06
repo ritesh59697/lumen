@@ -3,191 +3,254 @@
 <meta name="description" content="A free, offline media player that generates subtitles for any video. Nothing leaves your machine.">
 
 <style>
-  :root {
-    color-scheme: dark;
+  /*
+    Structure follows the reference: full-width bands alternating between a
+    light ground and a deep navy one, each holding a single large statement
+    and given a lot of vertical room. The rhythm of those bands is the
+    design — not the individual sections.
 
-    --ground:     #0B0D10;
-    --raised:     #12151A;
-    --hairline:   #1E232B;
-    --ink:        #F2F4F7;
-    --ink-dim:    #8A9099;
-    --ink-faint:  #5A626D;
-    --accent:     #4A9EFF;
-    --accent-dim: #2C6FBF;
-    --amber:      #E8A33D;
+    Departures, on purpose: the accent stays Lumen's own blue rather than the
+    reference's orange, and the navy bands carry the product imagery, since a
+    video player belongs in the dark.
+  */
+  :root {
+    color-scheme: light dark;
+
+    /* Light band */
+    --paper:      #FFFFFF;
+    --paper-alt:  #F4F6F9;
+    --ink:        #0C1119;
+    --ink-dim:    #4A5464;
+    --ink-faint:  #7B8798;
+
+    /* Dark band — navy, not black, following the reference */
+    --navy:       #050A24;
+    --navy-alt:   #0A1240;
+    --navy-ink:   #FFFFFF;
+    --navy-dim:   #A9B4CE;
+
+    --accent:     #2C7FF0;
+    --accent-lit: #63A6FF;
+    --amber:      #B8791F;
+
+    --line:       #E2E7EE;
+    --line-navy:  rgba(255, 255, 255, 0.16);
 
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
-    --measure: 62ch;
-
-    /* Hero photograph. Declared once here so swapping it is a one-line
-       change; the gradient over it is defined on .hero-bg. */
     --hero-image: url("img/hero.jpg");
   }
-
-  /* The app itself is a dark video player; the page commits to that world
-     deliberately rather than offering a light theme that would fight it. */
 
   * { box-sizing: border-box; }
 
   body {
-    position: relative;   /* anchors .hero-bg */
     margin: 0;
-    background: var(--ground);
+    background: var(--paper);
     color: var(--ink);
     font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.65;
+    font-size: 17px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
 
+  /* ---- bands --------------------------------------------------------- */
 
-  .wrap {
-    max-width: var(--measure);
+  .band { padding: 104px 0; }
+  .band--alt   { background: var(--paper-alt); }
+  .band--navy  { background: var(--navy); color: var(--navy-ink); }
+  .band--navy2 { background: var(--navy-alt); color: var(--navy-ink); }
+
+  .inner {
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 0 24px;
-    position: relative;   /* sits above .hero-bg */
-    z-index: 1;
+    padding: 0 32px;
   }
 
-  /* Display type and a centred hero need more room than running text. */
-  .wrap--wide { max-width: 78ch; }
+  .narrow { max-width: 760px; }
+
+  /* ---- type ---------------------------------------------------------- */
+
+  /*
+    The reference sets its display type at weight 400 — large but not bold,
+    which is what keeps a 44px headline feeling composed rather than shouted.
+  */
+  h1, h2 {
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h1 { font-size: clamp(36px, 5.4vw, 60px); line-height: 1.08; }
+  h2 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.15; }
+
+  h3 {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 20px;
+  }
+
+  .band--navy .eyebrow,
+  .band--navy2 .eyebrow { color: var(--accent-lit); }
+
+  .lede {
+    font-size: 19px;
+    color: var(--ink-dim);
+    margin: 20px 0 0;
+    text-wrap: pretty;
+  }
+
+  .band--navy .lede,
+  .band--navy2 .lede { color: var(--navy-dim); }
+
+  p { margin: 0 0 16px; }
+  p:last-child { margin-bottom: 0; }
 
   /* ---- hero ---------------------------------------------------------- */
 
-  /*
-    The hero sits on a night-sky photograph that runs full width, behind the
-    page's own dark ground. The image is the atmosphere; the type sits in a
-    ruled frame over it, centred, with room to breathe.
-
-    The photograph is dark blue at the top and pales toward the horizon, so
-    the gradient below darkens the top for text contrast and the bottom to
-    hand off into the page proper without a visible seam.
-  */
-  .hero-bg {
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: min(108vh, 1050px);
-    z-index: -1;
-    overflow: hidden;
+  .hero {
+    position: relative;
+    padding: 132px 0 116px;
     background:
-      /* The fade runs long and finishes fully opaque, so the photograph
-         dissolves into the page rather than stopping at a visible edge. */
       linear-gradient(
         to bottom,
-        rgba(9, 11, 14, 0.80) 0%,
-        rgba(9, 11, 14, 0.42) 34%,
-        rgba(9, 11, 14, 0.72) 62%,
-        rgba(9, 11, 14, 0.94) 84%,
-        var(--ground) 100%
+        rgba(5, 10, 36, 0.86) 0%,
+        rgba(5, 10, 36, 0.62) 42%,
+        rgba(5, 10, 36, 0.90) 100%
       ),
       var(--hero-image) center / cover no-repeat,
-      /* Shown until the photograph loads, and if it is ever missing, so the
-         hero is never a flat black rectangle. */
-      radial-gradient(120% 80% at 50% 100%, #12405C 0%, #0B1926 55%, #090B0E 100%);
-  }
-
-  header {
-    position: relative;
-    padding: 96px 0 56px;
-  }
-
-  .hero-frame {
+      linear-gradient(to bottom, #071133 0%, #050A24 100%);
+    color: var(--navy-ink);
     text-align: center;
-    padding: 0 0 8px;
-    /* Hairline rules top and bottom, echoing the framed hero on the
-       reference site — a boundary rather than a box. */
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-    padding-top: 56px;
-    padding-bottom: 52px;
   }
 
-  .mark {
+  .hero h1 { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5); }
+  .hero .lede { max-width: 56ch; margin-inline: auto; color: #C6D0E4; }
+
+  /* ---- buttons ------------------------------------------------------- */
+
+  /*
+    Square, following the reference. Rounded corners would soften a page
+    whose whole character comes from hard edges and flat bands.
+  */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 17px 32px;
+    border-radius: 0;
+    transition: background 140ms ease;
+  }
+
+  .btn:hover, .btn:focus-visible { background: #1C6AD4; }
+  .btn .arrow { font-size: 15px; }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .req {
     font-family: var(--mono);
     font-size: 13px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 0 0 28px;
+    color: var(--navy-dim);
   }
 
-  h1 {
-    font-family: var(--sans);
-    font-size: clamp(32px, 6vw, 52px);
-    line-height: 1.12;
-    letter-spacing: -0.025em;
-    font-weight: 600;
-    text-wrap: balance;
-    margin: 0 0 22px;
-    /* The photograph is bright near the horizon, so the type carries its
-       own shadow rather than relying on the overlay alone. */
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+  /* ---- first-run note ------------------------------------------------ */
+
+  .note {
+    display: flex;
+    gap: 12px;
+    max-width: 640px;
+    margin: 32px auto 0;
+    padding: 15px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 14.5px;
+    line-height: 1.55;
+    text-align: left;
+    color: #D6DEEE;
   }
 
-  .standfirst {
-    font-size: 18px;
-    color: #C3CEDB;
-    margin: 0 auto;
-    max-width: 54ch;
-    text-wrap: pretty;
-    text-shadow: 0 1px 16px rgba(0, 0, 0, 0.5);
+  .note b { color: #F0C674; font-weight: 600; }
+
+  .note kbd {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 1px 6px;
+    color: #FFFFFF;
   }
 
-  /* Centre the download row inside the framed hero. */
-  .hero-frame .get { justify-content: center; margin-top: 32px; }
+  .note-icon { color: #F0C674; flex: none; }
 
-  /* ---- the cue player: the page's thesis ----------------------------- */
+  /* ---- caption player ------------------------------------------------ */
 
   .stage {
-    margin: 44px 0 0;
-    border: 1px solid var(--hairline);
-    background: var(--raised);
-    border-radius: 4px;
-    overflow: hidden;
+    margin: 56px auto 0;
+    max-width: 720px;
+    border: 1px solid var(--line-navy);
+    background: #070C1E;
+    text-align: left;
   }
 
   .stage-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--hairline);
+    gap: 9px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line-navy);
     font-family: var(--mono);
     font-size: 12px;
-    color: var(--ink-faint);
+    color: #7C88A6;
   }
 
   .dot {
     width: 9px; height: 9px;
     border-radius: 50%;
-    background: var(--hairline);
+    background: rgba(255, 255, 255, 0.14);
     flex: none;
   }
 
-  .stage-file { margin-left: 4px; }
-
   .stage-body {
     position: relative;
-    min-height: 190px;
+    min-height: 180px;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 20px 24px 26px;
-    background:
-      radial-gradient(120% 90% at 50% 0%, #151A21 0%, #0E1116 70%);
+    align-items: flex-end;
+    justify-content: center;
+    padding: 22px 26px 28px;
   }
 
   #cue {
-    font-size: 17px;
+    font-size: 18px;
     line-height: 1.45;
     text-align: center;
     text-wrap: balance;
     max-width: 42ch;
     min-height: 3em;
     margin: 0;
+    color: #FFFFFF;
   }
 
   #cue::after {
@@ -195,14 +258,13 @@
     display: inline-block;
     width: 2px;
     height: 1.05em;
-    background: var(--accent);
+    background: var(--accent-lit);
     vertical-align: text-bottom;
     margin-left: 2px;
     animation: blink 1.06s steps(2, jump-none) infinite;
   }
 
   #cue.done::after { animation: none; opacity: 0; }
-
   @keyframes blink { 50% { opacity: 0; } }
 
   .timecode {
@@ -211,230 +273,138 @@
     font-family: var(--mono);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
-    color: var(--ink-faint);
+    color: #6C789A;
   }
 
-  .track {
-    height: 2px;
-    background: var(--hairline);
-  }
-
-  #played {
-    height: 100%;
-    width: 0%;
-    background: var(--accent);
-  }
+  .track { height: 2px; background: rgba(255, 255, 255, 0.1); }
+  #played { height: 100%; width: 0%; background: var(--accent-lit); }
 
   @media (prefers-reduced-motion: reduce) {
     #cue::after { animation: none; }
   }
 
-  /* ---- download ------------------------------------------------------ */
+  /* ---- feature rows -------------------------------------------------- */
 
-  .get {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 14px;
-    margin: 36px 0 0;
+  .features {
+    display: grid;
+    gap: 44px;
+    margin-top: 52px;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 9px;
-    background: var(--accent);
-    color: #06131F;
-    font-weight: 600;
-    font-size: 15px;
-    text-decoration: none;
-    padding: 12px 22px;
-    border-radius: 4px;
-    transition: background 120ms ease;
+  @media (min-width: 800px) {
+    .features { grid-template-columns: repeat(3, 1fr); gap: 40px; }
   }
 
-  .btn:hover, .btn:focus-visible { background: #6BB0FF; }
-
-  .btn span {
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 400;
-    opacity: 0.72;
-  }
-
-  .req {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ink-faint);
-  }
-
-  /* ---- first-run note ------------------------------------------------ */
-
-  .note {
-    display: flex;
-    gap: 12px;
-    margin: 26px 0 0;
-    padding: 14px 16px;
-    border: 1px solid #2A2418;
-    background: #17130C;
-    border-radius: 4px;
-    font-size: 14px;
-    line-height: 1.55;
-    color: #C9BFA8;
-  }
-
-  .note b { color: var(--amber); font-weight: 600; }
-
-  .note kbd {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    background: #241D10;
-    border: 1px solid #33290F;
-    border-radius: 3px;
-    padding: 1px 5px;
-    color: #E8D9B4;
-  }
-
-  .note-icon { color: var(--amber); flex: none; line-height: 1.55; }
-
-  /* ---- sections ------------------------------------------------------ */
-
-  section { padding: 56px 0; border-top: 1px solid var(--hairline); }
-
-  h2 {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    font-weight: 500;
-    margin: 0 0 22px;
-  }
-
-  h3 {
+  .feature p {
+    color: var(--ink-dim);
     font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 4px;
-    letter-spacing: -0.01em;
+    margin: 0;
   }
 
-  p { margin: 0 0 16px; }
-  p:last-child { margin-bottom: 0; }
-
-  .lead { color: var(--ink-dim); }
-
-  .rows { display: flex; flex-direction: column; gap: 26px; }
-
-  .row p { color: var(--ink-dim); font-size: 15px; margin: 0; }
+  .band--navy .feature p,
+  .band--navy2 .feature p { color: var(--navy-dim); }
 
   /* ---- pipeline ------------------------------------------------------ */
 
   .pipe {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    background: var(--hairline);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    overflow: hidden;
+    margin-top: 48px;
+    border-top: 1px solid var(--line-navy);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .step {
     display: flex;
     align-items: baseline;
-    gap: 14px;
-    padding: 13px 16px;
-    background: var(--raised);
+    gap: 18px;
+    padding: 18px 4px;
+    border-bottom: 1px solid var(--line-navy);
   }
 
-  .step-n {
-    color: var(--accent);
-    font-size: 11px;
-    min-width: 1.2em;
-  }
+  .step-n { color: var(--accent-lit); font-size: 12px; min-width: 1.4em; }
+  .step-what { color: #FFFFFF; }
+  .step-note { color: #7C88A6; font-size: 12.5px; margin-left: auto; }
 
-  .step-what { color: var(--ink); }
-  .step-note { color: var(--ink-faint); font-size: 12px; margin-left: auto; }
-
-  /* On narrow screens the trailing note collides with wrapping step text,
-     so stack it under rather than letting the two fight for the line. */
-  @media (max-width: 560px) {
-    .step { flex-wrap: wrap; row-gap: 3px; }
-    /* Keep the number beside the step text; only the trailing note drops
-       to its own line, indented to align under the text it annotates. */
+  @media (max-width: 620px) {
+    .step { flex-wrap: wrap; row-gap: 4px; }
     .step-what { flex: 1 1 0; min-width: 0; }
-    .step-note { flex: 1 1 100%; margin-left: 0; padding-left: calc(1.2em + 14px); }
+    .step-note { flex: 1 1 100%; margin-left: 0; padding-left: calc(1.4em + 18px); }
   }
+
+  /* ---- model list ---------------------------------------------------- */
+
+  .models { margin-top: 44px; border-top: 1px solid var(--line); }
+
+  .model {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 17px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .model-name { font-weight: 600; min-width: 5.5em; }
+  .model-note { color: var(--ink-faint); font-size: 15px; margin-left: auto; }
 
   /* ---- formats ------------------------------------------------------- */
 
   .formats {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+    margin-top: 36px;
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13px;
   }
 
   .fmt {
-    padding: 3px 9px;
-    border: 1px solid var(--hairline);
-    border-radius: 3px;
+    padding: 6px 13px;
+    border: 1px solid var(--line);
     color: var(--ink-dim);
+    background: var(--paper);
   }
 
   /* ---- footer -------------------------------------------------------- */
 
   footer {
-    padding: 40px 0 64px;
-    border-top: 1px solid var(--hairline);
-    font-size: 14px;
-    color: var(--ink-faint);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
+    background: var(--navy);
+    color: var(--navy-dim);
+    padding: 56px 0;
+    font-size: 15px;
   }
 
-  /* Scoped to :not(.btn): the generic link hover sets the same colour the
-     button uses for its hover background, so an unscoped rule turned the
-     button label invisible against its own fill. */
-  a:not(.btn) { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-  a:not(.btn):hover { color: #6BB0FF; }
+  .footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    align-items: center;
+  }
 
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:not(.btn):hover { color: #1C6AD4; }
+  .band--navy a:not(.btn),
+  .band--navy2 a:not(.btn),
+  footer a { color: var(--accent-lit); }
+
+  :focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 3px; }
 </style>
 
-<div class="hero-bg" aria-hidden="true"></div>
+<!-- ================= hero ================= -->
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">Lumen</p>
+    <h1>Any video. Subtitles it doesn't have.<br>Nothing leaves your machine.</h1>
+    <p class="lede">
+      A free media player that plays what VLC plays — and writes captions for
+      the files that arrived without them. The speech recognition runs on your
+      own hardware, offline, with no account and no upload.
+    </p>
 
-<div class="wrap wrap--wide">
-  <header>
-    <div class="hero-frame">
-      <p class="mark">Lumen</p>
-      <h1>Any video. Subtitles it doesn't have.<br>Nothing leaves your machine.</h1>
-      <p class="standfirst">
-        A free media player that plays what VLC plays — and writes captions for
-        the files that arrived without them. The speech recognition runs on your
-        own hardware, offline, with no account and no upload.
-      </p>
-
-      <div class="get">
-        <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">Download for macOS <span>Apple silicon</span></a>
-        <span class="req">M1 or newer · macOS 10.15+</span>
-      </div>
-    </div>
-
-    <div class="stage">
-      <div class="stage-bar">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="stage-file">interview-raw.mkv — no subtitle track</span>
-      </div>
-      <div class="stage-body">
-        <span class="timecode" id="tc">00:00:00,000</span>
-        <p id="cue"></p>
-      </div>
-      <div class="track"><div id="played"></div></div>
+    <div class="cta-row">
+      <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">
+        Download for macOS <span class="arrow">↓</span>
+      </a>
+      <span class="req">Apple silicon · macOS 10.15+</span>
     </div>
 
     <div class="note">
@@ -445,44 +415,81 @@
         developer certificate, so macOS asks once. After that it opens normally.
       </div>
     </div>
-  </header>
-</div>
+  </div>
+</header>
 
-<div class="wrap">
-  <section>
-    <h2>What it does</h2>
-    <div class="rows">
-      <div class="row">
-        <h3>Plays the file you actually have</h3>
+<!-- ================= what it does ================= -->
+<section class="band">
+  <div class="inner">
+    <p class="eyebrow">What it does</p>
+    <h2>Two things that usually need two apps.</h2>
+
+    <div class="features">
+      <div class="feature">
+        <h3>Plays the file you have</h3>
         <p>
           Built on libmpv — the engine behind mpv — so odd containers and old
           codecs open without hunting for a codec pack. Decoding is
           hardware-accelerated.
         </p>
       </div>
-      <div class="row">
-        <h3>Writes the subtitles that are missing</h3>
+      <div class="feature">
+        <h3>Writes the missing subtitles</h3>
         <p>
-          One button. Lumen pulls the audio, runs OpenAI's Whisper model on
-          your own machine, and loads the result onto the video. On Apple
-          silicon it uses the GPU: ten seconds of speech takes about a second
-          and a half.
+          One button. Lumen pulls the audio, runs Whisper on your own machine
+          and loads the result onto the video. An hour of speech takes about
+          two minutes on Apple silicon.
         </p>
       </div>
-      <div class="row">
+      <div class="feature">
         <h3>Lets you fix what it got wrong</h3>
         <p>
-          Speech recognition misses names and mishears words. The editor sits
-          beside the video with the current line highlighted — correct the
-          text, nudge the timing, split a line that ran on, then export the
-          SRT anywhere.
+          Speech recognition mishears names and technical words. The editor sits
+          beside the video with the current line highlighted — correct the text,
+          nudge the timing, export the SRT anywhere.
         </p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>How a caption gets made</h2>
+<!-- ================= live captions (navy) ================= -->
+<section class="band band--navy">
+  <div class="inner">
+    <p class="eyebrow">Watch while it works</p>
+    <h2>Captions appear before the transcription finishes.</h2>
+    <p class="lede narrow">
+      Audio is transcribed in order, so a job that is half done already covers
+      the first half of the video — the part you are watching. Subtitles show
+      up about thirty seconds in and keep extending. You will not catch up
+      to it.
+    </p>
+
+    <div class="stage">
+      <div class="stage-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>interview-raw.mkv — no subtitle track</span>
+      </div>
+      <div class="stage-body">
+        <span class="timecode" id="tc">00:00:00,000</span>
+        <p id="cue"></p>
+      </div>
+      <div class="track"><div id="played"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= pipeline (navy alt) ================= -->
+<section class="band band--navy2">
+  <div class="inner">
+    <p class="eyebrow">How a caption gets made</p>
+    <h2>Every step runs on your machine.</h2>
+    <p class="lede narrow">
+      Lumen makes exactly one network request in its life: downloading the
+      speech model the first time you ask for captions. After that you can
+      stay offline permanently.
+    </p>
+
     <div class="pipe">
       <div class="step"><span class="step-n">1</span><span class="step-what">Audio extracted from the video</span><span class="step-note">FFmpeg</span></div>
       <div class="step"><span class="step-n">2</span><span class="step-what">Converted to 16&nbsp;kHz mono</span><span class="step-note">what Whisper needs</span></div>
@@ -490,29 +497,34 @@
       <div class="step"><span class="step-n">4</span><span class="step-what">Timings cleaned, long lines wrapped</span><span class="step-note">so it reads</span></div>
       <div class="step"><span class="step-n">5</span><span class="step-what">Loaded onto the video as SRT</span><span class="step-note">yours to keep</span></div>
     </div>
-    <p class="lead" style="margin-top:20px;font-size:15px">
-      Every step is a local process. Lumen makes exactly one network request in
-      its life: downloading the speech model the first time you ask for
-      captions. After that you can stay offline permanently.
-    </p>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>Choose speed or accuracy</h2>
-    <div class="pipe">
-      <div class="step"><span class="step-n">·</span><span class="step-what">Tiny</span><span class="step-note">fastest, roughest</span></div>
-      <div class="step"><span class="step-n">·</span><span class="step-what">Base</span><span class="step-note">good balance — start here</span></div>
-      <div class="step"><span class="step-n">·</span><span class="step-what">Small</span><span class="step-note">slower, more accurate</span></div>
-      <div class="step"><span class="step-n">·</span><span class="step-what">Turbo</span><span class="step-note">best quality, large download</span></div>
-    </div>
-    <p class="lead" style="margin-top:20px;font-size:15px">
+<!-- ================= models ================= -->
+<section class="band band--alt">
+  <div class="inner">
+    <p class="eyebrow">Speed or accuracy</p>
+    <h2>Pick the model that suits the recording.</h2>
+    <p class="lede narrow">
       Models download once and work offline afterwards. 99 languages, and any
       of them can be translated to English on the way out.
     </p>
-  </section>
 
-  <section>
-    <h2>Formats</h2>
+    <div class="models">
+      <div class="model"><span class="model-name">Tiny</span><span class="model-note">fastest, roughest</span></div>
+      <div class="model"><span class="model-name">Base</span><span class="model-note">good balance — start here</span></div>
+      <div class="model"><span class="model-name">Small</span><span class="model-note">slower, better with accents and jargon</span></div>
+      <div class="model"><span class="model-name">Turbo</span><span class="model-note">best quality, large download</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= formats ================= -->
+<section class="band">
+  <div class="inner">
+    <p class="eyebrow">Formats</p>
+    <h2>If mpv plays it, Lumen plays it.</h2>
+
     <div class="formats">
       <span class="fmt">mp4</span><span class="fmt">mkv</span><span class="fmt">avi</span>
       <span class="fmt">webm</span><span class="fmt">mov</span><span class="fmt">flv</span>
@@ -520,37 +532,44 @@
       <span class="fmt">mpeg</span><span class="fmt">ts</span><span class="fmt">m2ts</span>
       <span class="fmt">3gp</span><span class="fmt">ogv</span>
     </div>
-    <p class="lead" style="margin-top:18px;font-size:15px">
+
+    <p class="lede narrow">
       Existing subtitle files load too — SRT, VTT, ASS and SSA — and anything
       sitting next to the video is picked up automatically.
     </p>
-  </section>
+  </div>
+</section>
 
-  <section id="download">
-    <h2>Get it</h2>
-    <p class="lead">
-      Free and open source under the MIT license. No account, no telemetry, no
-      paid tier.
+<!-- ================= download (navy) ================= -->
+<section class="band band--navy" id="download">
+  <div class="inner" style="text-align:center">
+    <h2>Free, open source, and yours to keep.</h2>
+    <p class="lede" style="max-width:52ch;margin-inline:auto">
+      MIT licensed. No account, no telemetry, no paid tier, and nothing about
+      your videos ever leaves the machine they are on.
     </p>
-    <div class="get">
-      <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">Download Lumen <span>.dmg</span></a>
+
+    <div class="cta-row">
+      <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">
+        Download Lumen <span class="arrow">↓</span>
+      </a>
       <span class="req">Apple silicon · macOS 10.15+ · Android planned</span>
     </div>
-    <p class="lead" style="margin-top:18px;font-size:14px">
-      <!-- Version numbers live on the releases page rather than being
-           duplicated here, where they would go stale on every release. -->
+
+    <p class="lede" style="font-size:15px;margin-top:24px">
       See <a href="https://github.com/ritesh59697/lumen/releases">what changed
       in each release</a>.
     </p>
-  </section>
+  </div>
+</section>
 
-  <footer>
+<footer>
+  <div class="inner footer-row">
     <a href="https://github.com/ritesh59697/lumen">Source on GitHub</a>
     <span>MIT licensed</span>
     <span>Built with mpv, whisper.cpp and FFmpeg</span>
-  </footer>
-
-</div>
+  </div>
+</footer>
 
 <script>
   // The hero plays a real caption cue — the same shape of output the app
@@ -579,7 +598,6 @@
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (reduced) {
-    // Show the finished state rather than animating toward it.
     cueEl.textContent = CUES[0].text;
     cueEl.classList.add("done");
     tcEl.textContent = timecode(CUES[0].out);
@@ -589,7 +607,7 @@
 
     function frame(now) {
       if (start === null) start = now;
-      const t = (now - start) % (RUN + 1400);   // brief hold, then loop
+      const t = (now - start) % (RUN + 1400);
 
       const clamped = Math.min(t, RUN);
       tcEl.textContent = timecode(Math.floor(clamped));
@@ -601,8 +619,6 @@
         if (t > RUN) cueEl.classList.add("done");
       } else {
         cueEl.classList.remove("done");
-        // Type the line across the first 900ms of its own span, so the text
-        // arrives in time with the cue rather than on an unrelated timer.
         const into = clamped - cue.in;
         const chars = Math.round(cue.text.length * Math.min(1, into / 900));
         const next = cue.text.slice(0, chars);
