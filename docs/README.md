@@ -10,16 +10,20 @@ file through Jekyll.
 
 ## When cutting a release
 
-The download buttons point at `releases/latest/download/`, which resolves to
-the newest release automatically — but the filename is versioned, so it does
-need updating when the version changes:
+The download buttons point at:
 
 ```
-Lumen-1.0.0-arm64.dmg
+https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg
 ```
 
-The version string in the hero button and the size on the footer button are
-both hardcoded, and should be updated alongside `pubspec.yaml`.
+Both halves of that URL are deliberately version-free — `latest` resolves to
+the newest release, and the asset name never changes — so the links do not
+need touching when a version ships. **Attach the `.dmg` under exactly that
+filename**, or the links break silently.
+
+Two strings on the page are still hardcoded and do need updating alongside
+`pubspec.yaml`: the version in the hero button (`v1.0.0`) and the file size
+on the footer button.
 
 ## Design notes
 

@@ -18,7 +18,13 @@ set -euo pipefail
 
 VERSION="$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')"
 APP_SRC="build/macos/Build/Products/Release/lumen.app"
-DMG="dist/Lumen-${VERSION}-arm64.dmg"
+
+# Unversioned filename on purpose. The landing page links to
+# releases/latest/download/Lumen-arm64.dmg, which resolves to the newest
+# release — but only if the asset name stays constant. Putting the version
+# in the filename would silently break that link on every release. The
+# version still ships inside the app bundle and in the release tag.
+DMG="dist/Lumen-arm64.dmg"
 STAGE="$(mktemp -d)/dmg"
 
 cleanup() { rm -rf "$(dirname "$STAGE")"; }
@@ -61,4 +67,7 @@ hdiutil create \
 hdiutil verify "$DMG" >/dev/null
 
 echo
-echo "Built $DMG ($(du -h "$DMG" | cut -f1))"
+echo "Built $DMG — version $VERSION ($(du -h "$DMG" | cut -f1))"
+echo
+echo "Attach this file to the GitHub release as-is. The landing page links to"
+echo "releases/latest/download/Lumen-arm64.dmg, so the name must not change."
