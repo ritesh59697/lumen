@@ -21,9 +21,13 @@ the newest release, and the asset name never changes — so the links do not
 need touching when a version ships. **Attach the `.dmg` under exactly that
 filename**, or the links break silently.
 
-Two strings on the page are still hardcoded and do need updating alongside
-`pubspec.yaml`: the version in the hero button (`v1.0.0`) and the file size
-on the footer button.
+Nothing else on this page needs updating for a release. The version number
+and file size used to be printed on the download buttons and went stale
+every single time, because editing them meant a commit and a Pages redeploy
+that lagged the release by minutes. Both are now omitted, and the page links
+to the releases list instead — which is accurate by construction.
+
+Resist adding them back.
 
 ## Design notes
 
