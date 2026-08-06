@@ -334,8 +334,11 @@
     gap: 8px 20px;
   }
 
-  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-  a:hover { color: #6BB0FF; }
+  /* Scoped to :not(.btn): the generic link hover sets the same colour the
+     button uses for its hover background, so an unscoped rule turned the
+     button label invisible against its own fill. */
+  a:not(.btn) { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:not(.btn):hover { color: #6BB0FF; }
 
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 </style>
