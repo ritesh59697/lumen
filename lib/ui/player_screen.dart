@@ -33,6 +33,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
   TranscriptionState _jobState = const TranscriptionState();
   SubtitleDocument? _document;
 
+  /// Last partial subtitle payload sent to the player, so an unchanged
+  /// chunk does not cause a needless track reload mid-playback.
+  String? _lastPartialSrt;
+
   Duration _position = Duration.zero;
 
   bool _showPlaylist = false;
@@ -75,6 +79,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _onTranscriptionState(TranscriptionState state) {
     if (!mounted) return;
+
+    // Push subtitles onto the video as each chunk lands, so you can start
+    // watching a long video immediately instead of waiting for the whole
+    // transcription. Chunks run in order, so what arrives first covers the
+    // beginning — the part you are watching.
+    final partial = state.partialSrt;
+    if (partial != null && partial != _lastPartialSrt) {
+      _lastPartialSrt = partial;
+      _controller.setSubtitleData(partial, title: 'Generating…');
+    }
+
     setState(() => _jobState = state);
 
     if (state.stage == TranscriptionStage.complete &&
@@ -204,6 +219,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
 
     if (options == null) return;
+
+    // Fresh job: forget the previous run's partial payload so its first
+    // update is not mistaken for a repeat.
+    _lastPartialSrt = null;
 
     unawaited(_transcription.generate(
       videoPath: videoPath,

@@ -30,6 +30,7 @@ class TranscriptionState {
     this.progress,
     this.message,
     this.subtitlePath,
+    this.partialSrt,
     this.error,
   });
 
@@ -47,6 +48,13 @@ class TranscriptionState {
   /// Path of the written .srt, set once [stage] is [TranscriptionStage.complete].
   final String? subtitlePath;
 
+  /// Subtitles for the part of the video transcribed so far, as SRT.
+  ///
+  /// Updated after each chunk while a long transcription is still running,
+  /// so the player can show captions for the beginning of the video without
+  /// waiting for the end of it.
+  final String? partialSrt;
+
   final String? error;
 
   bool get isRunning =>
@@ -61,6 +69,7 @@ class TranscriptionState {
     bool clearProgress = false,
     String? message,
     String? subtitlePath,
+    String? partialSrt,
     String? error,
   }) {
     return TranscriptionState(
@@ -68,6 +77,7 @@ class TranscriptionState {
       progress: clearProgress ? null : (progress ?? this.progress),
       message: message ?? this.message,
       subtitlePath: subtitlePath ?? this.subtitlePath,
+      partialSrt: partialSrt ?? this.partialSrt,
       error: error ?? this.error,
     );
   }
@@ -214,6 +224,17 @@ class TranscriptionService {
             progress: p.fraction,
             message: _progressMessage(p),
           )),
+          onPartialCues: (partial) {
+            // Chunks are transcribed in order, so a run that is half done
+            // has subtitles for the first half of the video — which is the
+            // part someone watching along is actually up to. Publishing them
+            // as they arrive means playback can start immediately instead of
+            // waiting for a multi-hour job to finish.
+            final ready = sanitizer.sanitize(partial);
+            if (ready.isEmpty) return;
+
+            _emit(_state.copyWith(partialSrt: cuesToSrt(ready)));
+          },
         ));
       } else {
         // Short file: one pass is quicker than the chunking overhead.

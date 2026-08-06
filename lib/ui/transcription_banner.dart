@@ -58,6 +58,21 @@ class TranscriptionBanner extends StatelessWidget {
                             ),
                           ),
                         ),
+                      // Tell the user the video is already watchable —
+                      // otherwise nothing suggests they need not wait for
+                      // the run to finish.
+                      if (state.isRunning && state.partialSrt != null)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Text(
+                            'Captions are playing as they finish — '
+                            'you can start watching now.',
+                            style: TextStyle(
+                              color: Colors.greenAccent,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
                       if (state.stage == TranscriptionStage.complete &&
                           state.subtitlePath != null)
                         Padding(
