@@ -54,3 +54,6 @@ ios/Pods/
 
 # Local scratch
 *.log
+
+# Release artifacts — attached to GitHub Releases, not committed
+dist/

@@ -38,9 +38,13 @@ Everything runs locally. There is no API key, no upload, and no telemetry.
 
 ## Requirements
 
-- **macOS** 10.15 or later (Apple silicon and Intel)
-- Roughly 500 MB of disk for the app, plus whatever models you download
+- **macOS** 10.15 or later, **Apple silicon only** (M1 and newer)
+- Roughly 100 MB of disk for the app, plus whatever models you download
   (base is ~142 MB, and is the recommended starting point)
+
+Intel Macs are not supported. `whisper_ggml_plus` excludes ggml's x86 sources
+in its podspec, so the x86_64 half of a universal binary cannot link. This is
+upstream, not a choice made here.
 
 Android support is planned; the codebase is cross-platform Flutter, and the Android
 toolchain simply has not been wired up yet.

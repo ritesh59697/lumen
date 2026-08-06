@@ -38,5 +38,16 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
+
+    # Apple Silicon only.
+    #
+    # whisper_ggml_plus excludes ggml's x86 sources in its podspec, so the
+    # x86_64 implementations of ggml_quantize_mat_q8_K_* are never compiled
+    # and an Intel slice cannot link. Debug builds hide this because
+    # ONLY_ACTIVE_ARCH limits them to the host architecture; a release build
+    # attempts a universal binary and fails.
+    target.build_configurations.each do |config|
+      config.build_settings['ARCHS'] = 'arm64'
+    end
   end
 end
