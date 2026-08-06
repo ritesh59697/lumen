@@ -1,20 +1,25 @@
 # Landing page
 
 `index.html` is self-contained — no build step, no dependencies, no external
-requests. Open it directly or drop it on any static host (GitHub Pages,
-Netlify, Vercel).
+requests. Open it directly or drop it on any static host.
 
-## Before publishing
+Served by GitHub Pages from this folder, which is why it is named `docs/`:
+Pages only offers the repository root or `/docs` as a source, so the name is
+load-bearing rather than descriptive. `.nojekyll` stops Pages running the
+file through Jekyll.
 
-The two download buttons point at `#` and `#download`. Once a release exists,
-point both at the `.dmg`:
+## When cutting a release
+
+The download buttons point at `releases/latest/download/`, which resolves to
+the newest release automatically — but the filename is versioned, so it does
+need updating when the version changes:
 
 ```
-<a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen.dmg">
+Lumen-1.0.0-arm64.dmg
 ```
 
-The version string in the hero button (`v1.0.0`) is hardcoded and needs
-updating alongside `pubspec.yaml`.
+The version string in the hero button and the size on the footer button are
+both hardcoded, and should be updated alongside `pubspec.yaml`.
 
 ## Design notes
 
