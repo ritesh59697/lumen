@@ -42,3 +42,20 @@ honours `prefers-reduced-motion` by showing the finished cue instead.
 The first-run Gatekeeper note is deliberately placed next to the download
 rather than buried further down. Users who meet that dialog without warning
 tend to assume the app is broken.
+
+## Hero image
+
+The hero sits on a photograph at `img/hero.jpg`, declared once as the
+`--hero-image` custom property so swapping it is a one-line change.
+
+What the image needs to be, for the type to stay readable:
+
+- **Dark, and darkest at the top** — the headline sits over the upper third
+- **Low detail behind the centre** — a busy area there fights the type
+- **Wide** (1920px+), since it is cropped with `cover` and centred
+
+A gradient over it darkens the top for contrast and fades the bottom into
+the page, so an image with a hard horizon still hands off cleanly.
+
+If the file is missing, a blue radial gradient shows in its place rather
+than a blank rectangle — the page degrades instead of breaking.

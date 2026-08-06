@@ -20,6 +20,10 @@
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
     --measure: 62ch;
+
+    /* Hero photograph. Declared once here so swapping it is a one-line
+       change; the gradient over it is defined on .hero-bg. */
+    --hero-image: url("img/hero.jpg");
   }
 
   /* The app itself is a dark video player; the page commits to that world
@@ -28,6 +32,7 @@
   * { box-sizing: border-box; }
 
   body {
+    position: relative;   /* anchors .hero-bg */
     margin: 0;
     background: var(--ground);
     color: var(--ink);
@@ -37,16 +42,66 @@
     -webkit-font-smoothing: antialiased;
   }
 
+
   .wrap {
     max-width: var(--measure);
     margin: 0 auto;
     padding: 0 24px;
+    position: relative;   /* sits above .hero-bg */
+    z-index: 1;
   }
+
+  /* Display type and a centred hero need more room than running text. */
+  .wrap--wide { max-width: 78ch; }
 
   /* ---- hero ---------------------------------------------------------- */
 
+  /*
+    The hero sits on a night-sky photograph that runs full width, behind the
+    page's own dark ground. The image is the atmosphere; the type sits in a
+    ruled frame over it, centred, with room to breathe.
+
+    The photograph is dark blue at the top and pales toward the horizon, so
+    the gradient below darkens the top for text contrast and the bottom to
+    hand off into the page proper without a visible seam.
+  */
+  .hero-bg {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: min(108vh, 1050px);
+    z-index: -1;
+    overflow: hidden;
+    background:
+      /* The fade runs long and finishes fully opaque, so the photograph
+         dissolves into the page rather than stopping at a visible edge. */
+      linear-gradient(
+        to bottom,
+        rgba(9, 11, 14, 0.80) 0%,
+        rgba(9, 11, 14, 0.42) 34%,
+        rgba(9, 11, 14, 0.72) 62%,
+        rgba(9, 11, 14, 0.94) 84%,
+        var(--ground) 100%
+      ),
+      var(--hero-image) center / cover no-repeat,
+      /* Shown until the photograph loads, and if it is ever missing, so the
+         hero is never a flat black rectangle. */
+      radial-gradient(120% 80% at 50% 100%, #12405C 0%, #0B1926 55%, #090B0E 100%);
+  }
+
   header {
-    padding: 88px 0 56px;
+    position: relative;
+    padding: 96px 0 56px;
+  }
+
+  .hero-frame {
+    text-align: center;
+    padding: 0 0 8px;
+    /* Hairline rules top and bottom, echoing the framed hero on the
+       reference site — a boundary rather than a box. */
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    padding-top: 56px;
+    padding-bottom: 52px;
   }
 
   .mark {
@@ -60,20 +115,28 @@
 
   h1 {
     font-family: var(--sans);
-    font-size: clamp(30px, 5.5vw, 44px);
-    line-height: 1.15;
-    letter-spacing: -0.02em;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
     font-weight: 600;
     text-wrap: balance;
-    margin: 0 0 20px;
+    margin: 0 0 22px;
+    /* The photograph is bright near the horizon, so the type carries its
+       own shadow rather than relying on the overlay alone. */
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
   }
 
   .standfirst {
     font-size: 18px;
-    color: var(--ink-dim);
-    margin: 0;
+    color: #C3CEDB;
+    margin: 0 auto;
+    max-width: 54ch;
     text-wrap: pretty;
+    text-shadow: 0 1px 16px rgba(0, 0, 0, 0.5);
   }
+
+  /* Centre the download row inside the framed hero. */
+  .hero-frame .get { justify-content: center; margin-top: 32px; }
 
   /* ---- the cue player: the page's thesis ----------------------------- */
 
@@ -343,16 +406,24 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 </style>
 
-<div class="wrap">
+<div class="hero-bg" aria-hidden="true"></div>
 
+<div class="wrap wrap--wide">
   <header>
-    <p class="mark">Lumen</p>
-    <h1>Any video. Subtitles it doesn't have. Nothing leaves your machine.</h1>
-    <p class="standfirst">
-      A free media player that plays what VLC plays — and writes captions for
-      the files that arrived without them. The speech recognition runs on your
-      own hardware, offline, with no account and no upload.
-    </p>
+    <div class="hero-frame">
+      <p class="mark">Lumen</p>
+      <h1>Any video. Subtitles it doesn't have.<br>Nothing leaves your machine.</h1>
+      <p class="standfirst">
+        A free media player that plays what VLC plays — and writes captions for
+        the files that arrived without them. The speech recognition runs on your
+        own hardware, offline, with no account and no upload.
+      </p>
+
+      <div class="get">
+        <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">Download for macOS <span>Apple silicon</span></a>
+        <span class="req">M1 or newer · macOS 10.15+</span>
+      </div>
+    </div>
 
     <div class="stage">
       <div class="stage-bar">
@@ -366,11 +437,6 @@
       <div class="track"><div id="played"></div></div>
     </div>
 
-    <div class="get">
-      <a class="btn" href="https://github.com/ritesh59697/lumen/releases/latest/download/Lumen-arm64.dmg">Download for macOS <span>Apple silicon</span></a>
-      <span class="req">M1 or newer · macOS 10.15+</span>
-    </div>
-
     <div class="note">
       <span class="note-icon">▲</span>
       <div>
@@ -380,7 +446,9 @@
       </div>
     </div>
   </header>
+</div>
 
+<div class="wrap">
   <section>
     <h2>What it does</h2>
     <div class="rows">
