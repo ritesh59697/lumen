@@ -381,9 +381,45 @@ class TranscriptionService {
   /// Leaves headroom so the UI and video decoding stay responsive during
   /// a long transcription.
   int _recommendedThreads() {
+    // Apple silicon reports performance and efficiency cores separately, and
+    // only the performance cores are worth giving to Whisper. Counting all
+    // ten cores on an M4 and asking for eight threads oversubscribes the
+    // four performance cores 2:1 — the surplus threads fight each other and
+    // the rest of the system, which is what makes the whole Mac feel slow
+    // during a long transcription.
+    final performanceCores = _performanceCoreCount();
+
+    if (performanceCores != null) {
+      // Leave one performance core for the UI, video decoding, and whatever
+      // else the user is doing. Finishing slightly later is a far better
+      // trade than making the machine unpleasant to use for an hour.
+      return (performanceCores - 1).clamp(1, 8);
+    }
+
+    // Intel and other platforms: no P/E split, so fall back to core count.
     final cores = Platform.numberOfProcessors;
     if (cores <= 2) return 1;
     return (cores - 2).clamp(1, 8);
+  }
+
+  /// Performance-core count on Apple silicon, or null elsewhere.
+  int? _performanceCoreCount() {
+    if (!Platform.isMacOS) return null;
+
+    try {
+      final result = Process.runSync(
+        'sysctl',
+        ['-n', 'hw.perflevel0.physicalcpu'],
+      );
+      if (result.exitCode != 0) return null;
+
+      final value = int.tryParse(result.stdout.toString().trim());
+      // Intel Macs have no perflevel0 key, so a missing or absurd value
+      // means this is not a P/E machine.
+      return (value != null && value > 0) ? value : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   void _throwIfCancelled(CancellationToken token) {
